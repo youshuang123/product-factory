@@ -1,0 +1,142 @@
+# 产品工厂 Product Factory
+
+[![CI](https://github.com/youshuang123/product-factory/actions/workflows/ci.yml/badge.svg)](https://github.com/youshuang123/product-factory/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-000000.svg)](LICENSE)
+
+**把 AI 产品开发变成看得见进度、查得到证据、由你确认的交付流程。**
+
+面向使用 AI 编程助手做产品的人：用本地网页控制台串起需求、架构、选型、开发、评测、上线与迭代。不是只有提示词的合集，而是 **本地控制台 + 7 个阶段 Skill + 状态机与审批记录**。
+
+[项目预览](#项目预览) · [开始使用](#开始使用控制台) · [控制台说明](console/README.md) · [对话使用指南](docs/usage.md)
+
+## 解决什么问题
+
+- **知道下一步做什么**：每个阶段说明 AI 要做什么、你需要确认什么、会交付什么。
+- **不把“写完了”当成“验收了”**：分开记录方案、可启动、模拟测试、真实模型测试和线上验证；阻塞与证据不足会留在质检单里。
+- **关键决定仍由人做**：需求确认、功能验收与部署授权保留明确审批点，不默认替你开通云资源或产生费用。
+- **复用现有 AI 工具**：控制台对接本机 Claude Code、Codex CLI、pi，也提供不调用 AI 的演示模式。具体配置与边界见控制台说明。
+
+## 项目预览
+
+以下三张为使用者于 2026-10-10 更新的深色版界面截图，按首页待办、创建产品、执行方式设置展示。截图中的日期、产品名称、产线数量和模型选项是当时的示例状态，不代表所有产品已完成真实模型或线上验收；可用模型以本机工具与账号权限为准。
+
+### 1. 首页待办：优先处理需要你确认的事
+
+首页汇总等待处理的事项与产线状态，通过待办卡片进入对应产品的验收或确认步骤。
+
+![产品工厂深色首页：SIGN-OFF、待办卡片与产线状态](docs/images/product-dashboard.png)
+
+### 2. 创建产品：从一个想法进入 PRD 访谈
+
+填写产品名和想法，可补充材料或选择示例；也可以先查看不调用 AI 的演示产品，或打开已有产品文件夹。
+
+![产品工厂创建产品：产品名、想法、补充材料与 PRD 访谈入口](docs/images/create-product.png)
+
+### 3. 执行方式设置：连接本机 AI 编程工具
+
+设置签字人，选择执行工具、登录方式与模型；控制台负责流程管理，具体任务交给选定的本机工具执行。
+
+![产品工厂深色设置：签字人、Claude Code、Codex CLI 与 pi 执行方式](docs/images/ai-executor-settings.png)
+
+## 工作流程
+
+把一个 AI 产品从想法推进到上线、再到迭代：每个阶段有专门的 Skill 负责做事，有统一的状态机负责“能不能往下走”。
+
+```text
+想法 → ① PRD → ② 架构蓝图 → ③ 技术适配 → ④ MVP 核心闭环 → ⑤ 正式前端 → ⑥ QA 与效果评测 → ⑦ 上线 → ⑧ 运营迭代 ─┐
+          ▲                                                                                            │
+          └──────────────────────────── 新版本（变更模式）◀──────────────────────────────────────────────┘
+```
+
+包含三部分：
+
+- **控制台**：在你电脑上运行的网页界面。回答问题、勾选待办、照清单验收、盖章审批都是点按钮完成，AI 在后台工作。**推荐从这里开始。**
+- **7 个 Skill**：给 AI 编程助手（Claude Code、Codex 等支持 `SKILL.md` 的助手）的阶段工作规范，控制台和对话两种方式都用它们。
+- **状态机脚本**：不依赖第三方库，负责闸门检查与审批记录。
+
+它不是自动建站平台，也不会自己去开云资源：付费、部署、公开访问都要你在审批点明确授权。
+
+## 开始使用控制台
+
+需要 Python 3.9+（只用标准库，无需安装依赖）。把仓库复制到本地：
+
+```sh
+git clone https://github.com/youshuang123/product-factory.git
+cd product-factory
+```
+
+双击 `启动控制台.command`（或运行 `python3 console/server.py`），浏览器会打开控制台。先点“先看看演示产品”走一遍完整流程（不调用 AI），再到“设置”里选择 AI 执行方式：Claude Code、Codex 或 pi，可以用各自的账号，也可以填 DeepSeek、Kimi 等国内模型的 API Key。详见 [控制台说明](console/README.md)。
+
+## 7 个 Skill
+
+| 阶段 | Skill | 做什么 | 交接物 |
+| --- | --- | --- | --- |
+| 总入口 | [product-factory](skills/product-factory/SKILL.md) | 看当前阶段、调用对应 Skill、跑闸门、停在审批点、上线后开新版本 | factory/state.json |
+| ① | [prd-author](skills/prd-author/SKILL.md) | 三轮访谈把想法问清楚，写带编号验收标准（AC）的 PRD | factory/prd.md |
+| ② | [agent-blueprint](skills/agent-blueprint/SKILL.md) | 判断要不要 Agent，五要素建模，最小组件选型，工具权限与预算 | factory/blueprint.md |
+| ③④ | [agent-mvp-delivery](skills/agent-mvp-delivery/SKILL.md) | 技术适配声明（默认 FastAPI 技术栈）→ 分阶段实现 → mock + 真实模型双层验收 | factory/adaptation.md、stages/ |
+| ⑤ | [agent-frontend-delivery](skills/agent-frontend-delivery/SKILL.md) | 任务型前端（默认 Next.js）：统一任务状态、流式、确认、断线恢复、浏览器验收 | factory/frontend/ |
+| ⑥ | [qa-eval](skills/qa-eval/SKILL.md) | AC → 功能/效果/安全/可靠性用例，覆盖检查与评测报告 | factory/eval/ |
+| ⑦ | [agent-release-readiness](skills/agent-release-readiness/SKILL.md) | 发布门槛、数据恢复与回滚、授权后部署（含火山引擎 veFaaS 适配器） | factory/release/record.md |
+
+每个 Skill 也可以单独使用，例如只用 prd-author 写 PRD，或只用 agent-release-readiness 做上线检查。
+
+## 闸门：什么时候能进入下一阶段
+
+`factory_gate.py check` 检查四件事，全部满足才能 `advance`：
+
+1. **交接物**写完了（文件存在，且已删除模板标记 `<!-- factory:template -->`）。
+2. **没有阻塞项**，失败的验证已处理。
+3. **证据等级够了**：`planned` → `scaffold_runs` → `mock_passed` → `real_passed` → `production_verified`。例如 MVP 必须有真实模型冒烟（real_passed），上线必须在目标环境实际验证（production_verified）。条件不具备时只能由你豁免，报告里会显示“豁免”。
+4. **你签了字**：PRD、蓝图、MVP 验收、前端验收、部署授权（release_go）、上线验收。签字会记录你的原话。
+
+## 不用控制台，直接在对话里用
+
+需要 Python 3.9+（只用标准库）。
+
+```sh
+# 1. 检查包是否完整
+python3 scripts/check_package.py
+python3 -m unittest discover -s tests
+(cd console && python3 -m unittest discover -s tests)
+
+# 2. 安装 Skill（默认装到 ~/.claude/skills；已有同名 Skill 会先备份）
+./scripts/install.sh
+#   装到某个项目：./scripts/install.sh /path/to/project/.claude/skills
+
+# 3. 在产品仓库里对助手说：
+#    “使用 product-factory，为‘论文阅读助手’建立工厂流程，从 PRD 开始。”
+```
+
+状态机也可以手动用：
+
+```sh
+GATE=~/.claude/skills/product-factory/scripts/factory_gate.py
+python3 $GATE init ./my-product --name "论文阅读助手"
+python3 $GATE status ./my-product
+python3 $GATE approve ./my-product --id prd_signoff --by "我" --quote "PRD 确认"
+python3 $GATE check ./my-product && python3 $GATE advance ./my-product
+```
+
+更多对话示例见 [使用说明](docs/usage.md)。
+
+## 目录
+
+```text
+启动控制台.command  双击启动控制台（macOS）
+console/           控制台（Python 标准库后端 + 原生 JS 前端，无需安装依赖）
+skills/            7 个 Skill，每个目录可独立安装
+scripts/           check_package.py（包结构检查）、install.sh（安装）
+tests/             状态机与评测脚本的端到端测试
+docs/              使用说明、设计说明、来源对照、后续路线
+```
+
+## 来源与状态
+
+由两份材料合并而来：`agent-product-delivery-skills`（4 个 Skill 的规则与边界）和课程第四周材料（BLUEPRINT 方法论、三本技术手册）。取舍和修订见 [来源对照](docs/sources.md)，设计理由见 [设计说明](docs/design.md)。
+
+**当前状态**：结构检查、脚本测试、控制台测试（含浏览器端到端走完 8 个阶段）已通过；控制台的 Claude Code 执行方式用模拟程序验证过参数与防护，按 [后续路线](docs/roadmap.md) 持续修订。
+
+## 开源协议
+
+[MIT](LICENSE) © 2026 youshuang123
